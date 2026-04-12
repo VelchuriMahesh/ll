@@ -130,3 +130,20 @@ body {
 
 .orbit  { animation: orbit 12s linear infinite; }
 .float  { animation: float 6s ease-in-out infinite; }
+
+*, *::before, *::after { cursor: none !important; }
+input, textarea, select { cursor: text !important; }
+/* ── PASTE THESE at the bottom of src/index.css ── */
+
+/* Hide native cursor — our custom one replaces it */
+*, *::before, *::after {
+  cursor: none !important;
+}
+/* Restore text cursor for inputs */
+input, textarea, select {
+  cursor: text !important;
+}
+
+/* Add at bottom of src/index.css */
+*, *::before, *::after { cursor: none !important; }
+input, textarea, select { cursor: text !important; }
