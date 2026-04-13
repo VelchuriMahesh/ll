@@ -4,6 +4,7 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import Loader from "./components/Loader.jsx";
 import PageTransition from "./components/PageTransition.jsx";
+import Login, { isAuthenticated } from "./components/Login.jsx";
 
 const Home     = lazy(() => import("./pages/Home.jsx"));
 const Journey  = lazy(() => import("./pages/Journey.jsx"));
@@ -15,46 +16,43 @@ const FunZone  = lazy(() => import("./pages/FunZone.jsx"));
 const Timeline = lazy(() => import("./pages/Timeline.jsx"));
 const MapPage  = lazy(() => import("./pages/MapPage.jsx"));
 
-// ── Tune these two numbers to control the loader ──────────────────
-const LOADER_DURATION_MS = 5000; // how long the bar takes to reach 100%
-const FINISH_HOLD_MS     = 1200; // how long to stay at 100% before showing page
+// ── Loader timing ─────────────────────────────────────────────────
+const LOADER_DURATION_MS = 5000;
+const FINISH_HOLD_MS     = 1200;
 // ─────────────────────────────────────────────────────────────────
 
 export default function App() {
   const location = useLocation();
 
-  // loading starts true, flips false only after loader finishes fully
+  // ── Auth: persists for the tab session, clears on close ──────
+  const [authed,  setAuthed]  = useState(isAuthenticated);
+
+  // ── Loader ───────────────────────────────────────────────────
   const [loading,  setLoading]  = useState(true);
   const [progress, setProgress] = useState(0);
 
-  // refs so the RAF loop never depends on stale closures or re-renders
-  const startRef  = useRef(null);   // timestamp of first rAF tick
-  const rafRef    = useRef(null);   // current rAF handle
-  const doneRef   = useRef(false);  // guard — setLoading(false) fires once
+  const startRef = useRef(null);
+  const rafRef   = useRef(null);
+  const doneRef  = useRef(false);
 
   useEffect(() => {
     document.title = "End of An Era 💫 | AI & DS – B (2022–2026)";
   }, []);
 
+  // Start the loader RAF only after successful login
   useEffect(() => {
-    // ── RAF-based progress: always takes exactly LOADER_DURATION_MS ──
-    // This is immune to refresh / caching speed because it is driven
-    // purely by wall-clock time, not by network or React render cycles.
+    if (!authed) return;
+
     const tick = (now) => {
       if (!startRef.current) startRef.current = now;
-
       const elapsed = now - startRef.current;
       const next    = Math.min((elapsed / LOADER_DURATION_MS) * 100, 100);
 
-      // Always set progress first — including when next === 100 —
-      // so React renders "100%" on screen before we do anything else.
       setProgress(next);
 
       if (next < 100) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
-        // At this point the loader is visually at 100%.
-        // Wait FINISH_HOLD_MS so the user sees it, then reveal the page.
         if (!doneRef.current) {
           doneRef.current = true;
           setTimeout(() => setLoading(false), FINISH_HOLD_MS);
@@ -63,12 +61,10 @@ export default function App() {
     };
 
     rafRef.current = requestAnimationFrame(tick);
-
-    // Cleanup if the component ever unmounts mid-animation
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, []); // ← empty deps: runs once on mount, never again
+  }, [authed]);
 
   const routes = [
     { path: "/",         Component: Home     },
@@ -83,43 +79,51 @@ export default function App() {
   ];
 
   return (
-    <Layout>
-      {/*
-        Render the Loader inside AnimatePresence so its exit animation
-        (blur/fade defined inside Loader.jsx) plays when loading → false.
-      */}
+    <>
+      {/* ── STEP 1: Login gate ─────────────────────────────────── */}
       <AnimatePresence>
-        {loading && <Loader key="loader" progress={progress} />}
+        {!authed && (
+          <Login key="login" onSuccess={() => setAuthed(true)} />
+        )}
       </AnimatePresence>
 
-      {/*
-        Keep Suspense fallback minimal — the Loader already covers the screen.
-        Pages are rendered (hidden) underneath while the loader plays,
-        so lazy chunks are already fetched by the time we reveal them.
-      */}
-      <Suspense
-        fallback={
-          <div className="flex h-screen items-center justify-center text-white/40 text-sm">
-            Loading... ✨
-          </div>
-        }
-      >
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            {routes.map(({ path, Component }) => (
-              <Route
-                key={path}
-                path={path}
-                element={
-                  <PageTransition>
-                    <Component />
-                  </PageTransition>
-                }
-              />
-            ))}
-          </Routes>
-        </AnimatePresence>
-      </Suspense>
-    </Layout>
+      {/* ── STEP 2: Loader (only after login) ──────────────────── */}
+      <AnimatePresence>
+        {authed && loading && (
+          <Loader key="loader" progress={progress} />
+        )}
+      </AnimatePresence>
+
+      {/* ── STEP 3: App (rendered hidden so lazy chunks pre-load) ─ */}
+      {authed && (
+        <div style={{ visibility: loading ? "hidden" : "visible" }}>
+          <Layout>
+            <Suspense
+              fallback={
+                <div className="flex h-screen items-center justify-center text-white/40 text-sm">
+                  Loading... ✨
+                </div>
+              }
+            >
+              <AnimatePresence mode="wait">
+                <Routes location={location} key={location.pathname}>
+                  {routes.map(({ path, Component }) => (
+                    <Route
+                      key={path}
+                      path={path}
+                      element={
+                        <PageTransition>
+                          <Component />
+                        </PageTransition>
+                      }
+                    />
+                  ))}
+                </Routes>
+              </AnimatePresence>
+            </Suspense>
+          </Layout>
+        </div>
+      )}
+    </>
   );
 }
