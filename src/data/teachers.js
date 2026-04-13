@@ -100,7 +100,7 @@ export const teachers = [
   },
   {
     id: 12,
-    name: "Mrs. Ch.Devi Chaitanya",
+    name: "Ms. G.Madhuri",
     qualification: "Assistant Professor | M.Tech",
     subject: "IoT & Embedded Systems",
     quote: "Connect everything — and think beyond. 🔗",
@@ -109,8 +109,8 @@ export const teachers = [
   },
   {
     id: 13,
-    name: "Ms. G.Madhuri",
-    qualification: "Assistant Professor | M.Tech",
+    name: "Mr. K.Srikanth",
+    qualification: "Assistant Professor | M.Tech,(Ph.D.)",
     subject: "Robotics & Automation",
     quote: "Automate the ordinary. Innovate the extraordinary. 🤖",
     message: "Go out there and build the future you dreamed of! 🚀",
@@ -118,20 +118,12 @@ export const teachers = [
   },
   {
     id: 14,
-    name: "Mr. K.Srikanth",
-    qualification: "Assistant Professor | M.Tech,(Ph.D.)",
+    name: "J Madhu Sudhana Rao",
+    qualification: "Assistant Professor | M.Tech",
     subject: "Data Mining & Warehousing",
     quote: "Hidden in data is the truth. Find it. 💡",
     message: "Four years flew by. So proud of each one of you. 💝",
     photo: "/videos/Screenshot 2026-04-11 182415.png",
   },
-  {
-    id: 15,
-    name: "J Madhu Sudhana Rao",
-    qualification: "Assistant Professor | M.Tech",
-    subject: "Design & Analysis of Algorithms",
-    quote: "An elegant algorithm is a work of art. 🎨",
-    message: "You are ready. Go change the world. ♾️",
-    photo: "/videos/Screenshot 2026-04-11 182415.png",
-  },
+ 
 ];

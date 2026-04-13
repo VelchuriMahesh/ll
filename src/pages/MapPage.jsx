@@ -30,7 +30,7 @@ export default function MapPage() {
               
               {/* Static Map Image */}
               <img
-                src="\gallery\Screenshot 2026-04-11 205938.png"
+                src="\gallery/m8.png"
                 alt="College Location"
                 className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
               />
